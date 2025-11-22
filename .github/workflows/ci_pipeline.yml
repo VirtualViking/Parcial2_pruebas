@@ -18,7 +18,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: root  # Contraseña para el MySQL de GitHub
           MYSQL_DATABASE: parcial_db # Creamos la BD real automáticamente
         ports:
-          - 3306:3306
+          - 3307:3307
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
@@ -39,13 +39,26 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Correr Pruebas con MySQL Real
+    # PASO A: Ejecutar Pruebas Unitarias (Unit Tests)
+    # Ejecuta solo el archivo test_unit.py
+    - name: 🧪 Ejecutar Pruebas Unitarias
       env:
-        # Aquí inyectamos las credenciales para conectarnos al servicio MySQL de arriba
         DB_HOST: 127.0.0.1
-        DB_PORT: 3306
+        DB_PORT: 3307
         DB_USER: root
         DB_PASSWORD: root
         DB_NAME: parcial_db
       run: |
-        pytest
+        pytest tests/test_unit.py -v
+
+    # PASO B: Ejecutar Pruebas de Integración (Integration Tests)
+    # Ejecuta solo el archivo test_integration.py para verificar el CRUD completo
+    - name: 🔄 Ejecutar Pruebas de Integración (CRUD)
+      env:
+        DB_HOST: 127.0.0.1
+        DB_PORT: 3307
+        DB_USER: root
+        DB_PASSWORD: root
+        DB_NAME: parcial_db
+      run: |
+        pytest tests/test_integration.py -v
