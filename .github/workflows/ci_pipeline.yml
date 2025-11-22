@@ -1,4 +1,4 @@
-name: CI Pipeline - Parcial Backend (MySQL Real)
+name: CI Pipeline - Parcial Backend
 
 on:
   push:
@@ -10,20 +10,14 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    # SERVICIOS: Contenedor MySQL
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: parcial_db
-        
-        # CORRECCIÓN DE PUERTOS: 
-        # Usamos el estandar 3306:3306. 
-        # (El error anterior 3307:3307 fallaba porque MySQL escucha internamente en el 3306)
         ports:
           - 3307:3307
-          
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
@@ -40,28 +34,27 @@ jobs:
         python-version: '3.9'
 
     - name: Instalar dependencias
-      # NOTA: Asegúrate de que 'cryptography' esté en tu requirements.txt
-      # para que pymysql pueda conectarse a MySQL 8.0
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # PASO A: Pruebas Unitarias
+    - name: Esperar a que MySQL esté listo
+      run: sleep 15
+
     - name: 🧪 Ejecutar Pruebas Unitarias
       env:
         DB_HOST: 127.0.0.1
-        DB_PORT: 3307        # Puerto corregido
+        DB_PORT: 3307
         DB_USER: root
         DB_PASSWORD: root
         DB_NAME: parcial_db
       run: |
         pytest tests/test_unit.py -v
 
-    # PASO B: Pruebas de Integración
     - name: 🔄 Ejecutar Pruebas de Integración (CRUD)
       env:
         DB_HOST: 127.0.0.1
-        DB_PORT: 3307        # Puerto corregido
+        DB_PORT: 3307
         DB_USER: root
         DB_PASSWORD: root
         DB_NAME: parcial_db
